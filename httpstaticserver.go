@@ -131,6 +131,9 @@ func (s *HTTPStaticServer) hIndex(w http.ResponseWriter, r *http.Request) {
 		}
 		if r.FormValue("download") == "true" {
 			w.Header().Set("Content-Disposition", "attachment; filename="+strconv.Quote(filepath.Base(path)))
+			log.Println("Adding content-type 'application/vnd.android.package-archive' to .apk")
+			mime.AddExtensionType(".apk", "application/vnd.android.package-archive")
+			w.Header().Set("Content-Type", mime.TypeByExtension(filepath.Ext(path)))
 		}
 		http.ServeFile(w, r, relPath)
 	}
@@ -169,8 +172,8 @@ func (s *HTTPStaticServer) hDelete(w http.ResponseWriter, req *http.Request) {
 	err := os.Remove(filepath.Join(s.Root, path))
 	if err != nil {
 		pathErr, ok := err.(*os.PathError)
-		if ok{
-			http.Error(w, pathErr.Op + " " + path + ": " + pathErr.Err.Error(), 500)
+		if ok {
+			http.Error(w, pathErr.Op+" "+path+": "+pathErr.Err.Error(), 500)
 		} else {
 			http.Error(w, err.Error(), 500)
 		}
